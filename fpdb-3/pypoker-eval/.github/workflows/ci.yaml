@@ -1,0 +1,96 @@
+name: Build and Package Python Project with Python 3.11
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-on-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: Check out repository code
+
+      - name: Install Python 3.11 (Linux)
+        run: |
+          sudo apt-get update
+          sudo add-apt-repository ppa:deadsnakes/ppa -y
+          sudo apt-get install -y python3.11 python3.11-dev python3.11-distutils python3.11-venv
+          python3.11 -m pip install --upgrade pip
+
+      - name: Install CMake and Make (Linux)
+        run: sudo apt-get install -y cmake make
+
+      - name: Download and Extract poker-eval (Linux)
+        run: |
+          wget https://github.com/jejellyroll-fr/poker-eval/releases/download/poker-eval-v140.0.0/poker-eval-linux-amd64.zip
+          unzip poker-eval-linux-amd64.zip -d poker-eval
+
+      - name: Build the project (Linux)
+        run: |
+          ls
+          mkdir build
+          cd build
+          cmake ..
+          make
+
+  build-on-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: Check out repository code
+
+      - name: Install Python 3.11 (macOS)
+        run: |
+          brew install python@3.11
+          echo 'export PATH="/usr/local/opt/python@3.11/bin:$PATH"' >> $GITHUB_ENV
+          python3.11 -m pip install --upgrade pip
+
+      - name: Install CMake and Make (macOS)
+        run: brew install cmake make
+
+      - name: Download and Extract poker-eval (macOS)
+        run: |
+          curl -L https://github.com/jejellyroll-fr/poker-eval/releases/download/poker-eval-v140.0.0/poker-eval-darwin-amd64.zip -o poker-eval-darwin-amd64.zip
+          unzip poker-eval-darwin-amd64.zip -d poker-eval
+
+      - name: Build the project (macOS)
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make
+
+  build-on-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: Check out repository code
+
+      - name: Install Python 3.11 (Windows)
+        run: |
+          choco install python --version=3.11.0 -y
+          echo "C:\Python311\Scripts;C:\Python311" | Set-Content -Path $env:GITHUB_PATH -Encoding utf8 -Append
+          python -m pip install --upgrade pip
+
+      - name: Install CMake
+        run: choco install cmake -y
+
+      - name: Download and Extract poker-eval (Windows)
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/jejellyroll-fr/poker-eval/releases/download/poker-eval-v140.0.0/poker-eval-windows-amd64.zip" -OutFile "poker-eval-windows-amd64.zip"
+          Expand-Archive -Path "poker-eval-windows-amd64.zip" -DestinationPath "poker-eval"
+
+      - name: Build the project (Windows)
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "Visual Studio 16 2019" # Adjust as per your Visual Studio version
+          cmake --build .
