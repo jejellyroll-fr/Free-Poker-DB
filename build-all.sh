@@ -59,6 +59,11 @@ if [[ "$OS" == "Windows" ]]; then
     cp "${BASE_PATH}/fpdb-3/pypoker-eval/build/Debug/pypokereval.dll" "${BASE_PATH}/fpdb-3/_pokereval_3_11.pyd"
     echo "Copying pokereval.py to fpdb-3..."
     cp "${BASE_PATH}/fpdb-3/pypoker-eval/pokereval.py" "${BASE_PATH}/fpdb-3/"
+elif [[ "$OS" == "MacOS" ]]; then
+    echo "Copying and renaming pypokereval.so to _pokereval_3_11.so for MacOs..."
+    cp "${BASE_PATH}/fpdb-3/pypoker-eval/build/pypokereval.so" "${BASE_PATH}/fpdb-3/_pokereval_3_11.so"
+    echo "Copying pokereval.py to fpdb-3..."
+    cp "${BASE_PATH}/fpdb-3/pypoker-eval/pokereval.py" "${BASE_PATH}/fpdb-3/"
 fi
 
 echo "All projects built successfully."
