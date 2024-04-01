@@ -6,6 +6,8 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
 # Spécifier la version C standard
 set(CMAKE_C_STANDARD 99)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 
 # Inclure les répertoires des en-têtes
 include_directories(include)

@@ -56,7 +56,7 @@ if(Python3_FOUND)
         message(STATUS "POKER_EVAL_LIB_PATH is set to ${POKER_EVAL_LIB_PATH}")
     elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         include_directories("${CMAKE_SOURCE_DIR}/include")
-        set(POKER_EVAL_LIB_PATH "${CMAKE_SOURCE_DIR}/poker-eval/build/Debug/libpoker_lib_static.a")
+        set(POKER_EVAL_LIB_PATH "${CMAKE_SOURCE_DIR}/poker-eval/build/libpoker_lib_static.a")
     endif()
 
     # Incluez les en-têtes de poker-eval si vous les avez
