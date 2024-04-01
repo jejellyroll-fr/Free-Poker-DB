@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -16,13 +17,13 @@ class CustomEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, Decimal):
             return str(o)
-        if isinstance(o, datetime):
-            return o.isoformat()
-        return super().default(o)
+        return o.isoformat() if isinstance(o, datetime) else super().default(o)
 
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+static_files_path = os.path.join(BASE_DIR, "static")
+app.mount("/static", StaticFiles(directory=static_files_path), name="static")
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
