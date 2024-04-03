@@ -22,140 +22,49 @@
 
 #TODO fix / rethink edit stats - it is broken badly just now
 
-#    Standard Library modules
-from __future__ import with_statement
-from __future__ import print_function
 
-
-#import L10n
-#_ = L10n.get_translation()
-
-import codecs
-import os
-import sys
-import inspect
-import string
-import shutil
-import locale
-import re
-import xml.dom.minidom
+from __future__ import with_statement, print_function
+import codecs, os, sys, inspect, string, shutil, locale, re, xml.dom.minidom
 from xml.dom.minidom import Node
-
 import platform
+import logging, logging.config
 
-
+# Détermination du système d'exploitation pour le chemin de l'application de données
 if platform.system() == 'Windows':
-    #import winpaths
-    #winpaths_appdata = winpaths.get_appdata()
-    import os
     winpaths_appdata = os.getenv('APPDATA')
-    #winpaths_appdata = os.getcwd()
     winpaths_appdata = winpaths_appdata.replace("\\", "/")
-    print ('winpaths_appdata:') #debug
-    print (winpaths_appdata) #debug
+    print('winpaths_appdata:', winpaths_appdata)
 else:
     winpaths_appdata = False
 
-import logging, logging.config
-
-
-# config version is used to flag a warning at runtime if the users config is
-#  out of date.
-# The CONFIG_VERSION should be incremented __ONLY__ if the add_missing_elements()
-#  method cannot update existing standard configurations
+# Version de configuration pour signaler un avertissement à l'exécution si la configuration de l'utilisateur est obsolète
 CONFIG_VERSION = 83
 
-#
-# Setup constants
-# code is centralised here to ensure uniform handling of path names
-# especially important when user directory includes non-ascii chars
-#
-# INSTALL_METHOD ("source" or "exe")
-# FPDB_ROOT_PATH (path to the root fpdb installation dir root (normally ...../fpdb)
-# APPDATA_PATH (root path for appdata eg /~ or appdata)
-# CONFIG_PATH (path to the directory holding logs, sqlite db's and config)
-# GRAPHICS_PATH (path to graphics assets (normally .gfx)
-# PYFPDB_PATH (path to py's)
-# OS_FAMILY (OS Family for installed system (Linux, Mac, XP, Win7)
-# POSIX (True=Linux or Mac platform, False=Windows platform)
-# PYTHON_VERSION (n.n)
-
+# Configuration des constantes
 if hasattr(sys, "frozen"):
-    if platform.system() == 'Windows':
-        INSTALL_METHOD = "exe"
-    elif platform.system() == 'Darwin':
-        INSTALL_METHOD = "app"
+    INSTALL_METHOD = "frozen"
 else:
     INSTALL_METHOD = "source"
 
-if INSTALL_METHOD == "exe" :
-    FPDB_ROOT_PATH = os.path.dirname(sys.executable)
-    
-    FPDB_ROOT_PATH = FPDB_ROOT_PATH.replace("\\", "/")
-     # should be exe path to \fpdbroot\pyfpdb
-elif INSTALL_METHOD == "app":
-    FPDB_ROOT_PATH = os.path.dirname(sys.executable)
-elif sys.path[0] == "": # we are probably running directly (>>>import Configuration)
-    temp = os.getcwd() # should be ./pyfpdb
+# Chemins de base selon la méthode d'installation
+if sys.path[0] == "":
+    temp = os.getcwd()
     print(temp)
-    FPDB_ROOT_PATH = os.path.join(temp, os.pardir)   # go up one level (to fpdbroot)
-else: # all other cases
-    #FPDB_ROOT_PATH = os.path.dirname(sys.path[0])  # should be source path to /fpdbroot
+    FPDB_ROOT_PATH = os.path.join(temp, os.pardir)
+else:
     FPDB_ROOT_PATH = os.getcwd()
 
-sysPlatform = platform.system()  #Linux, Windows, Darwin
-if sysPlatform[0:5] == 'Linux':
-    OS_FAMILY = 'Linux'
-elif sysPlatform == 'Darwin':
-    OS_FAMILY = 'Mac'
-elif sysPlatform == 'Windows':
-    if platform.release() != 'XP':
-        OS_FAMILY = 'Win7' #Vista and win7
-    else:
-        OS_FAMILY = 'XP'
-else:
-    OS_FAMILY = False
+FPDB_ROOT_PATH = FPDB_ROOT_PATH.replace("\\", "/")
+APPDATA_PATH = os.path.expanduser("~") if platform.system() != 'Windows' else winpaths_appdata
+CONFIG_PATH = os.path.join(APPDATA_PATH, ".fpdb")
+GRAPHICS_PATH = os.path.join(FPDB_ROOT_PATH, "gfx")
+PYFPDB_PATH = os.path.join(FPDB_ROOT_PATH)
 
-#GRAPHICS_PATH = os.path.join(FPDB_ROOT_PATH, "gfx")
-#PYFPDB_PATH = os.path.join(FPDB_ROOT_PATH, "pyfpdb")
-
-if OS_FAMILY in ['XP', 'Win7']:
-    APPDATA_PATH = winpaths_appdata
-    CONFIG_PATH = os.path.join(APPDATA_PATH, "fpdb")
-    CONFIG_PATH = CONFIG_PATH.replace("\\", "/")
-    FPDB_ROOT_PATH = os.path.dirname(sys.executable)
-    FPDB_ROOT_PATH = FPDB_ROOT_PATH.replace("\\", "/")
-    if INSTALL_METHOD == "source":
-        script = os.path.realpath(__file__)
-        print("SCript path:", script)
-        script = script.replace("\\", "/")
-        script = script.rsplit('/',1)[0]
-        GRAPHICS_PATH = script+'/gfx'
-    else:
-        GRAPHICS_PATH = os.path.join(FPDB_ROOT_PATH, "gfx")
-        GRAPHICS_PATH = GRAPHICS_PATH.replace("\\", "/")
-    PYFPDB_PATH = os.path.join(FPDB_ROOT_PATH, "pyfpdb")
-    PYFPDB_PATH = PYFPDB_PATH.replace("\\", "/")
-elif OS_FAMILY == 'Mac':
-    APPDATA_PATH = os.getenv("HOME")
-    CONFIG_PATH = os.path.join(APPDATA_PATH, ".fpdb")
-    GRAPHICS_PATH = os.path.join(FPDB_ROOT_PATH, "gfx")
-    PYFPDB_PATH = os.path.join(FPDB_ROOT_PATH, "pyfpdb")
-elif OS_FAMILY == 'Linux':
-    APPDATA_PATH = os.path.expanduser(u"~")
-    CONFIG_PATH = os.path.join(APPDATA_PATH, ".fpdb")
-    GRAPHICS_PATH = os.path.join(FPDB_ROOT_PATH,"gfx")
-    PYFPDB_PATH = os.path.join(FPDB_ROOT_PATH)
-else:
-    APPDATA_PATH = False
-    CONFIG_PATH = False
-
-if os.name == 'posix':
-    POSIX = True
-else:
-    POSIX = False
-    
+# Définition de l'environnement d'exécution
+OS_FAMILY = platform.system()
+POSIX = os.name == 'posix'
 PYTHON_VERSION = sys.version[:3]
+sysPlatform = platform.system()
     
 # logging has been set up in fpdb.py or HUD_main.py, use their settings:
 log = logging.getLogger("config")

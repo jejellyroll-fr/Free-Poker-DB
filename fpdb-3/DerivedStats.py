@@ -702,7 +702,7 @@ class DerivedStats(object):
                             modSplit = potHiLo - potSplit*len(win[hl])
                             pnames = players if len(holeplayers)==0 else [holeplayers[w] for w in win[hl]]
                             for n in positions:
-                                if positionDict[n] in pnames:
+                                if positionDict.get(n) in pnames:
                                     pname = positionDict[n]
                                     ppot = potSplit
                                     if modSplit>0:

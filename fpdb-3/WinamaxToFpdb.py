@@ -577,12 +577,14 @@ class Winamax(HandHistoryConverter):
         log.info(
             f"Winamax.getTableTitleRe: table_name='{table_name}' tournament='{tournament}' table_number='{table_number}'"
         )
+        print(f"Winamax.getTableTitleRe: table_name='{table_name}' tournament='{tournament}' table_number='{table_number}'")
         sysPlatform = platform.system()  # Linux, Windows, Darwin
         if sysPlatform[:5] == 'Linux':
             regex = f"Winamax {table_name}"
+            print("regex get table cash title linux:", regex)
         else:
             regex = f"Winamax {table_name} /"
-        print("regex get table cash title:", regex)
+            print("regex get table cash title:", regex)
         if tournament:
             if (
                 table_number > 99
@@ -591,10 +593,13 @@ class Winamax(HandHistoryConverter):
             ):
 
                 regex = r"Winamax\s+([^\(]+)\(%s\)\(#%s\)" % (tournament, table_number)
+                print("regex get mtt sng expresso cash title1:", regex)
             elif table_number < 100 and table_number > 9:
                 regex = r"Winamax\s+([^\(]+)\(%s\)\(#0%s\)" % (tournament, table_number)
+                print("regex get mtt sng expresso cash title2:", regex)
             else:
                 regex = r"Winamax\s+([^\(]+)\(%s\)\(#00%s\)" % (tournament, table_number)
+                print("regex get mtt sng expresso cash title3:", regex)
 
             print("regex get mtt sng expresso cash title:", regex)
         log.info(f"Winamax.getTableTitleRe: returns: '{regex}'")
