@@ -22,8 +22,12 @@ jobs:
     - name: Install CMake
       run: choco install cmake -y
   
+    - name: Install dependencies for Visual Studio Build Tools
+      run: choco install chocolatey-dotnetfx.extension -y
+  
     - name: Install Visual Studio Build Tools
       run: choco install visualstudio2022buildtools -y --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
+  
   
 
     - name: Install Python dependencies
